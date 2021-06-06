@@ -25,6 +25,28 @@ typedef struct message_buffer {
 } message_buffer;
 
 
+vector<string> convert_string_to_vector(string str) {
+    vector<string> temp;
+    istringstream ss(str);
+    string word;
+    while(ss >> word)
+        temp.push_back(word);
+    return temp;
+}
+
+
+void handle_cmd(string cmd, string &ip, string &multicast_ip, int &router_port) {
+    vector<string> cmd_vector = convert_string_to_vector(cmd);
+    if (cmd_vector[0] == "Set" && cmd_vector[2] == "multicast")
+        multicast_ip = cmd_vector[3];
+    else if (cmd_vector[0] == "Set")
+        ip = cmd_vector[2];
+    else if (cmd_vector[0] == "Connect")
+        router_port = atoi(cmd_vector[2].c_str());
+    else if (cmd_vector[0] == "Add");
+}
+
+
 vector<string> split_frame(string str) {
     vector<string> v;
     stringstream ss(str);
@@ -47,5 +69,16 @@ void send_message(string msg, int key) {
 
 
 int main(int argc, char const *argv[]) {
+    string name = argv[1];
+    string server_ip = argv[2];
+    int router_port;
+    string ip, multicast_ip;
+    for (int i = 0; i < 4; i++) {
+        string cmd;
+        cin >> cmd;
+        handle_cmd(cmd, ip, multicast_ip, router_port);
+    }
+    while (true) {
+    }
     exit(0);
 }

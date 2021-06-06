@@ -25,6 +25,26 @@ typedef struct message_buffer {
 } message_buffer;
 
 
+vector<string> convert_string_to_vector(string str) {
+    vector<string> temp;
+    istringstream ss(str);
+    string word;
+    while(ss >> word)
+        temp.push_back(word);
+    return temp;
+}
+
+
+void handle_cmd(string cmd) {
+    vector<string> cmd_vector = convert_string_to_vector(cmd);
+    if (cmd_vector[0] == "Set");
+    else if (cmd_vector[0] == "Connect");
+    else if (cmd_vector[0] == "ChangeCost");
+    else if (cmd_vector[0] == "Disconnect");
+    else if (cmd_vector[0] == "Show");
+}
+
+
 vector<string> split_frame(string str) {
     vector<string> v;
     stringstream ss(str);
@@ -47,5 +67,11 @@ void send_message(string msg, int key) {
 
 
 int main(int argc, char const *argv[]) {
+    int listen_port = atoi(argv[1]);
+    while (true) {
+        string cmd;
+        cin >> cmd;
+        handle_cmd(cmd);
+    }
     exit(0);
 }
