@@ -51,7 +51,6 @@ void send_message(vector<string> &data, int key) {
         msgsnd(msgid, &msg_buff, sizeof(msg_buff), 0);
     }
     string msg = data[0] + ':' + data[1] + ':' + data[2] + ":1";
-    cout << msg << endl;
     msg_buff.msg_type = 1;
     strcpy(msg_buff.msg_text, msg.c_str());
     msgsnd(msgid, &msg_buff, sizeof(msg_buff), 0);
@@ -92,7 +91,7 @@ int main(int argc, char const *argv[]) {
             else {
                 if (sender == system_number)
                     send_message(data, router_number);
-                if (receiver == system_number)
+                else if (receiver == system_number || receiver == 0)
                     receive_message(system_number, data, msg_buff, msgid);
             }
         }

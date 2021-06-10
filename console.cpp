@@ -54,6 +54,15 @@ public:
             }
             send_system_system(atoi(cmd[1].c_str()), atoi(cmd[2].c_str()), data);
         }
+        if (cmd[0] == "Send-M") {
+            string data = "";
+            for (int i = 3; i < cmd.size(); i++) {
+                data += cmd[i];
+                if (i != cmd.size() - 1)
+                    data += " ";
+            }
+            send_multicast(atoi(cmd[1].c_str()), cmd[2], data);
+        }
         if (cmd[0] == "Join") {
             join_group(atoi(cmd[1].c_str()), cmd[2]);
         }
@@ -75,6 +84,16 @@ public:
         int msgid = msgget(key, 0666 | IPC_CREAT);
         msg_buff.msg_type = 1;
         string msg = to_string(sender) + ':' + to_string(receiver) + ':' + data;
+        strcpy(msg_buff.msg_text, msg.c_str());
+        msgsnd(msgid, &msg_buff, sizeof(msg_buff), 0);
+    }
+
+    void send_multicast(int sender, string group_name, string data) {
+        message_buffer msg_buff;
+        int key = sender + 1000;
+        int msgid = msgget(key, 0666 | IPC_CREAT);
+        msg_buff.msg_type = 1;
+        string msg = to_string(sender) + ':' + group_name + ':' + data;
         strcpy(msg_buff.msg_text, msg.c_str());
         msgsnd(msgid, &msg_buff, sizeof(msg_buff), 0);
     }

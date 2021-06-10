@@ -66,12 +66,26 @@ void process_frame(vector<string> data, int *port_table, int *is_router, int num
             }
         }
         msg = to_string(router_number) + ':' + data[1] + ':' + data[2] + ':' + data[3] + ':' + to_string(router_number);
-        cout << msg << endl;
         for (int i = 0; i < number_of_ports; i++) {
             if (is_router[i] == 1) {
                 if (data.size() > 4 && port_table[i] == atoi(data[4].c_str()))
                     continue;
                 key = port_table[i];
+                send_message(msg, key);
+            }
+        }
+    }
+    else if (receiver == 0) {
+        msg = data[0] + ':' + data[1] + ':' + data[2] + ':' + data[3] + ':' + to_string(router_number);
+        for (auto i : group_table[data[1]]) {
+            if (is_router[i] == 1) {
+                if (data.size() > 4 && port_table[i] == atoi(data[4].c_str()))
+                    continue;
+                key = port_table[i];
+                send_message(msg, key);
+            }
+            else {
+                key = port_table[i] + 1000;
                 send_message(msg, key);
             }
         }
