@@ -14,6 +14,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <map>
+#include <set>
 #include <sstream>
 
 using namespace std;
@@ -23,26 +25,6 @@ typedef struct message_buffer {
     long msg_type;
     char msg_text[1024];
 } message_buffer;
-
-
-vector<string> convert_string_to_vector(string str) {
-    vector<string> temp;
-    istringstream ss(str);
-    string word;
-    while(ss >> word)
-        temp.push_back(word);
-    return temp;
-}
-
-
-void handle_cmd(string cmd) {
-    vector<string> cmd_vector = convert_string_to_vector(cmd);
-    if (cmd_vector[0] == "Set");
-    else if (cmd_vector[0] == "Connect");
-    else if (cmd_vector[0] == "ChangeCost");
-    else if (cmd_vector[0] == "Disconnect");
-    else if (cmd_vector[0] == "Show");
-}
 
 
 vector<string> split_frame(string str) {
@@ -66,12 +48,79 @@ void send_message(string msg, int key) {
 }
 
 
+void process_frame(vector<string> data, int *port_table, int *is_router, int number_of_ports, int router_number,map<string, set<int> >  &group_table) {
+    int sender = atoi(data[0].c_str());
+    int receiver = atoi(data[1].c_str());
+    int key;
+    string msg;
+    if (sender == 0) {
+        port_table[atoi(data[3].c_str())] = atoi(data[2].c_str());
+        if (data.size() == 5)
+            is_router[atoi(data[3].c_str())] = 1;
+    }
+    else if (receiver == -1) {
+        for (int i = 0; i < number_of_ports; i++) {
+            if (port_table[i] == sender) {
+                group_table[data[2]].insert(i);
+                break;
+            }
+        }
+        msg = to_string(router_number) + ':' + data[1] + ':' + data[2] + ':' + data[3] + ':' + to_string(router_number);
+        cout << msg << endl;
+        for (int i = 0; i < number_of_ports; i++) {
+            if (is_router[i] == 1) {
+                if (data.size() > 4 && port_table[i] == atoi(data[4].c_str()))
+                    continue;
+                key = port_table[i];
+                send_message(msg, key);
+            }
+        }
+    }
+    else {
+        bool find = false;
+        for (int i = 0; i < number_of_ports; i++) {
+            if (port_table[i] == receiver && is_router[i] == 0) {
+                find = true;
+                msg = data[0] + ':' + data[1] + ':' + data[2] + ':' + data[3];
+                key = receiver + 1000;
+                send_message(msg, key);
+                break;
+            }
+        }
+        if (!find) {
+            msg = data[0] + ':' + data[1] + ':' + data[2] + ':' + data[3] + ':' + to_string(router_number);
+            for (int i = 0; i < number_of_ports; i++) {
+                if (is_router[i] == 1) {
+                    if (data.size() > 4 && port_table[i] == atoi(data[4].c_str()))
+                        continue;
+                    key = port_table[i];
+                    send_message(msg, key);
+                }
+            }
+        }
+    }
+}
+
+
 int main(int argc, char const *argv[]) {
-    int listen_port = atoi(argv[1]);
+    int number_of_ports = atoi(argv[0]);
+    int router_number = atoi(argv[1]);
+    int *port_table = (int*)malloc(number_of_ports * sizeof(int));
+    int *is_router = (int*)malloc(number_of_ports * sizeof(int));
+    map<string, set<int> > group_table;
+    for (int i = 0; i < number_of_ports; i++) {
+        port_table[i] = -1;
+        is_router[i] = 0;
+    }
+    message_buffer msg_buff;
+    int key = router_number;
+    int msgid = msgget(key, 0666 | IPC_CREAT);
     while (true) {
-        string cmd;
-        cin >> cmd;
-        handle_cmd(cmd);
+        if (msgrcv(msgid, &msg_buff, sizeof(msg_buff), 1, IPC_NOWAIT) != -1) {
+            string frame(msg_buff.msg_text);
+            vector<string> data = split_frame(frame);
+            process_frame(data, port_table, is_router, number_of_ports, router_number, group_table);
+        }
     }
     exit(0);
 }

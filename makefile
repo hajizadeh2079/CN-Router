@@ -1,27 +1,21 @@
 CC = g++ -std=c++11
 
-all: client.out server.out group_server.out router.out
+all: console.out system.out router.out
 
-client.out: client.o
-	${CC} client.o -o client.out
+console.out: console.o
+	${CC} console.o -o console.out
 
-server.out: server.o
-	${CC} server.o -o server.out
-
-group_server.out: group_server.o
-	${CC} group_server.o -o group_server.out
+system.out: system.o
+	${CC} system.o -o system.out
 
 router.out: router.o
 	${CC} router.o -o router.out
 
-client.o: client.cpp
-	${CC} -c client.cpp
+console.o: console.cpp
+	${CC} -c console.cpp
 
-server.o: server.cpp
-	${CC} -c server.cpp
-
-group_server.o: group_server.cpp
-	${CC} -c group_server.cpp
+system.o: system.cpp
+	${CC} -c system.cpp
 
 router.o: router.cpp
 	${CC} -c router.cpp
